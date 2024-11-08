@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Serilog" Version="4.1.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\Framework\Modular.Framework.Module\Modular.Framework.Module.csproj" />
+      <ProjectReference Include="..\..\Example.Module\Example.Module.csproj" />
+      <ProjectReference Include="..\Example.Projects.Application\Example.Projects.Application.csproj" />
+      <ProjectReference Include="..\Example.Projects.Infrastructure\Example.Projects.Infrastructure.csproj" />
+    </ItemGroup>
+
+</Project>

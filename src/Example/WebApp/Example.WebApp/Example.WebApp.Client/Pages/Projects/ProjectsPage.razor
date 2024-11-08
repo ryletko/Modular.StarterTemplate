@@ -1,0 +1,72 @@
+@page "/projects"
+@using Example.Shared
+@using Example.WebApp.Shared.Projects
+@using Example.WebApp.Shared.Services
+@implements IDisposable
+
+@inject PersistentComponentState ApplicationState
+@inject IApiService ApiService
+
+<h3>ProjectsPage</h3>
+
+@foreach (var p in Projects)
+{
+    @($"{p.Id} - {p.ProjectName}")<button @onclick="() => SendToNextStatus(p)">Change Status</button>
+    <br/>
+}
+
+@code {
+
+    private const string ProjectsListDataKey = "ProjectsList";
+
+    public List<GetProjectsRq> Projects = [];
+
+    private PersistingComponentStateSubscription persistingSubscription;
+
+    protected override async Task OnInitializedAsync()
+    {
+        persistingSubscription = ApplicationState.RegisterOnPersisting(PersistData);
+
+        if (!ApplicationState.TryTakeFromJson<List<GetProjectsRq>>(ProjectsListDataKey, out var restored))
+        {
+            await PopulateProjects();
+        }
+        else
+        {
+            Projects = restored;
+        }
+
+        await base.OnInitializedAsync();
+    }
+
+    Task PersistData()
+    {
+        ApplicationState.PersistAsJson(ProjectsListDataKey, Projects);
+
+        return Task.CompletedTask;
+    }
+
+    void IDisposable.Dispose()
+    {
+        persistingSubscription.Dispose();
+    }
+
+    async Task PopulateProjects()
+    {
+        var getProjectsResult = await ApiService.HttpClient.GetAsync("api/projects");
+        if (getProjectsResult.IsSuccessStatusCode)
+        {
+            Projects = await getProjectsResult.Content.ReadFromJsonAsync<List<GetProjectsRq>>();
+        }
+    }
+
+    async Task SendToNextStatus(GetProjectsRq project)
+    {
+        await ApiService.HttpClient.PostAsJsonAsync($"api/projects/{project.Id}/status",
+                                                    new ChangeProjectStatusRq()
+                                                    {
+                                                        StatusCode = ProjectStatusCode.FromValue(project.Status).Next().Id
+                                                    });
+    }
+
+}
